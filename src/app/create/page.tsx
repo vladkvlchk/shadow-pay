@@ -16,6 +16,7 @@ import { createTransaction } from "@/lib/intmax"
 import { saveTransaction } from "@/lib/storage"
 
 export default function CreatePayment() {
+  const [receiver, setReceiver] = useState("");
   const [amount, setAmount] = useState("")
   const [comment, setComment] = useState("")
   const [loading, setLoading] = useState(false)
@@ -31,17 +32,22 @@ export default function CreatePayment() {
       return
     }
 
+    if (!receiver || receiver.length <= 5) {
+        setError("Please enter a receiver address")
+        return
+    }
+
     setLoading(true)
     setError(null)
 
     try {
       // In a real implementation, this would use the INTMAX SDK
-      const transaction = await createTransaction(Number.parseFloat(amount), comment)
+      const transaction = await createTransaction(receiver, Number.parseFloat(amount), comment)
 
       // Save transaction to local storage for offline access
       await saveTransaction(transaction)
 
-      setQrData(JSON.stringify(transaction))
+      setQrData('https://shadow-pay-chi.vercel.app/pay/' + transaction.id)
       setTransactionId(transaction.id)
     } catch (err) {
       setError("Failed to create transaction. Please try again.")
@@ -76,26 +82,36 @@ export default function CreatePayment() {
     <div className="min-h-screen bg-black text-white">
       <Navigation />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 w-fit">
         <h1 className="text-2xl font-bold mb-6">Create Payment</h1>
 
         {error && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-6 bg-red-500/20 border-red-500/40">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
         {!qrData ? (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-gray-9500 border min-w-120 max-w-180">
             <CardHeader>
-              <CardTitle>Payment Details</CardTitle>
+              <CardTitle className="text-white">Payment Details</CardTitle>
               <CardDescription className="text-gray-400">Enter the payment amount and optional comment</CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (INTMAX)</Label>
+                  <Label className="text-white" htmlFor="receiver">Receiver address</Label>
+                  <Input
+                    id="receiver"
+                    placeholder="0xd8a10c4babb5374a9c3a037cb7c3912f8f2a6aae"
+                    value={receiver}
+                    onChange={(e) => setReceiver(e.target.value)}
+                    className="bg-gray-800 border-gray-700 text-white"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white" htmlFor="amount">Amount (ETH)</Label>
                   <Input
                     id="amount"
                     type="number"
@@ -103,23 +119,23 @@ export default function CreatePayment() {
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="bg-gray-800 border-gray-700"
+                    className="bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="comment">Comment (Optional)</Label>
+                  <Label className="text-white" htmlFor="comment">Comment (Optional)</Label>
                   <Textarea
                     id="comment"
                     placeholder="What's this payment for?"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="bg-gray-800 border-gray-700"
+                    className="bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
               </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700" disabled={loading}>
+              <CardFooter className="mt-4">
+                <Button type="submit" className="w-full bg-white text-black hover:bg-gray-100 cursor-pointer" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -136,7 +152,7 @@ export default function CreatePayment() {
           <div className="flex flex-col items-center">
             <Card className="bg-gray-900 border-gray-800 w-full max-w-md mx-auto">
               <CardHeader>
-                <CardTitle>Payment QR Code</CardTitle>
+                <CardTitle className="text-white">Payment QR Code</CardTitle>
                 <CardDescription className="text-gray-400">Have the recipient scan this code</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col items-center">
@@ -147,26 +163,26 @@ export default function CreatePayment() {
                 <div className="w-full space-y-2 mt-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Amount:</span>
-                    <span>{amount} INTMAX</span>
+                    <span className="text-white">{amount} ETH</span>
                   </div>
                   {comment && (
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Comment:</span>
-                      <span className="text-right">{comment}</span>
+                      <span className="text-right text-white">{comment}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-400">Transaction ID:</span>
-                    <span className="text-xs truncate max-w-[200px]">{transactionId}</span>
+                    <span className="text-xs truncate max-w-[200px] text-white">{transactionId}</span>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex gap-2">
-                <Button variant="outline" className="flex-1 border-purple-700 text-purple-400" onClick={handleCopyQR}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  Copy Data
+                <Button variant="outline" className="flex-1 border-black cursor-pointer" onClick={handleCopyQR}>
+                  <Copy className="mr-2 h-4 w-4 text-black" />
+                  Copy Link
                 </Button>
-                <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={handleDownloadQR}>
+                <Button className="flex-1 bg-black cursor-pointer" onClick={handleDownloadQR}>
                   <Download className="mr-2 h-4 w-4" />
                   Download QR
                 </Button>
@@ -175,7 +191,7 @@ export default function CreatePayment() {
 
             <Button
               variant="link"
-              className="mt-4 text-purple-400"
+              className="mt-4 text-purple-400 cursor-pointer"
               onClick={() => {
                 setQrData(null)
                 setTransactionId(null)

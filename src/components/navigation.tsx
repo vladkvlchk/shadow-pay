@@ -2,9 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import Image from "next/image"
+import { Ghost, QrCode, Scan, History } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Ghost, QrCode, Scan, History } from "lucide-react"
 
 export function Navigation() {
   const pathname = usePathname()
@@ -14,7 +16,8 @@ export function Navigation() {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <Ghost className="h-6 w-6 text-purple-500" />
+            {/* <Ghost className="h-6 w-6 text-purple-500" /> */}
+            <Image src="/logo.png" alt="logo"  width="70" height={40} />
             <span className="font-bold text-xl">ShadowPay</span>
           </Link>
 

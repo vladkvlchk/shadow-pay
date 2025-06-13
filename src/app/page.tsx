@@ -1,8 +1,22 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Ghost, Wifi, WifiOff, ArrowRight, Shield } from "lucide-react"
-import Image from "next/image"
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Ghost,
+  Wifi,
+  WifiOff,
+  ArrowRight,
+  Shield,
+  QrCode,
+  Scan,
+} from "lucide-react";
+import Image from "next/image";
 
 export default function Home() {
   return (
@@ -10,8 +24,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-12">
         <header className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-2">
-            {/* <Ghost className="h-8 w-8 text-purple-500" /> */}
-            <Image src="/logo.png" alt="logo"  width="70" height={40} />
+            <Image src="/logo.png" alt="logo" width="70" height={40} />
             <h1 className="text-2xl font-bold">ShadowPay</h1>
           </div>
           <nav>
@@ -22,23 +35,41 @@ export default function Home() {
         </header>
 
         <section className="mb-16 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">Private Offline Crypto Payments</h2>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Private Offline Crypto Payments
+          </h2>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8">
-            Send and receive crypto payments without an internet connection. Your transactions sync to INTMAX when
-            you're back online.
+            Send and receive crypto payments without an internet connection.
+            Your transactions sync to INTMAX when you're back online.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button asChild size="lg" className="">
-              <Link href="/create">Create Payment</Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-black text-black"
-            >
-              <Link href="/scan">Scan Payment</Link>
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            <Link href="/create" className="group">
+              <Card className="bg-gray-950 border-gray-700 hover:bg-gray-750 hover:border-purple-600 transition-all duration-300 h-full">
+                <CardContent className="p-8 flex flex-col items-center text-center">
+                  <div className="bg-gray-100/50 p-4 rounded-full mb-4 group-hover:bg-purple-900/50 transition-colors">
+                    <QrCode className="h-12 w-12 text-white hover:text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-white">Create Payment</h3>
+                  <p className="text-gray-400">
+                    Generate a QR code for someone to scan and pay you
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/scan" className="group">
+              <Card className="bg-gray-950 border-gray-700 hover:bg-gray-750 hover:border-purple-600 transition-all duration-300 h-full">
+                <CardContent className="p-8 flex flex-col items-center text-center">
+                  <div className="bg-gray-100/50 p-4 rounded-full mb-4 group-hover:bg-purple-900/50 transition-colors">
+                    <Scan className="h-12 w-12 text-white hover:text-purple-400" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 text-white">Scan Payment</h3>
+                  <p className="text-gray-400">
+                    Scan a QR code to receive a payment
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </section>
 
@@ -127,9 +158,11 @@ export default function Home() {
 
         <footer className="text-center text-gray-400 py-8">
           <p>ShadowPay - Powered by INTMAX</p>
-          <p className="text-sm mt-2">Private, Stateless, Near-Zero Fee Transactions</p>
+          <p className="text-sm mt-2">
+            Private, Stateless, Near-Zero Fee Transactions
+          </p>
         </footer>
       </div>
     </main>
-  )
+  );
 }

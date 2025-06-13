@@ -22,11 +22,11 @@ export function generateRandomAddress(): string {
 }
 
 // Create a new transaction (sender side)
-export async function createTransaction(amount: number, comment?: string): Promise<Transaction> {
+export async function createTransaction(receiver: string, amount: number, comment?: string): Promise<Transaction> {
   // In a real implementation, this would use the INTMAX SDK to create and sign a transaction
 
   const senderAddress = generateRandomAddress()
-  const recipientAddress = generateRandomAddress()
+//   const recipientAddress = generateRandomAddress()
 
   // Mock signing the transaction
   const signature = `sig_${uuidv4().replace(/-/g, "")}`
@@ -39,7 +39,7 @@ export async function createTransaction(amount: number, comment?: string): Promi
     type: "sent",
     status: "pending",
     senderAddress,
-    recipientAddress,
+    recipientAddress: receiver,
     signature,
   }
 }
