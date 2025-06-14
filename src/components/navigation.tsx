@@ -26,7 +26,7 @@ export function Navigation() {
               variant="ghost"
               size="sm"
               asChild
-              className={cn("text-gray-400 hover:text-white", pathname === "/create" && "text-purple-400 bg-gray-900")}
+              className={cn("text-gray-400 hover:text-black", pathname === "/create" && "text-purple-400 bg-gray-900")}
             >
               <Link href="/create" className="flex items-center gap-1">
                 <QrCode className="h-4 w-4" />
@@ -38,7 +38,7 @@ export function Navigation() {
               variant="ghost"
               size="sm"
               asChild
-              className={cn("text-gray-400 hover:text-white", pathname === "/scan" && "text-purple-400 bg-gray-900")}
+              className={cn("text-gray-400 hover:text-black", pathname === "/scan" && "text-purple-400 bg-gray-900")}
             >
               <Link href="/scan" className="flex items-center gap-1">
                 <Scan className="h-4 w-4" />
@@ -46,7 +46,7 @@ export function Navigation() {
               </Link>
             </Button>
 
-            <Button
+            {/* <Button
               variant="ghost"
               size="sm"
               asChild
@@ -56,7 +56,7 @@ export function Navigation() {
                 <History className="h-4 w-4" />
                 <span>History</span>
               </Link>
-            </Button>
+            </Button> */}
           </nav>
         </div>
       </div>

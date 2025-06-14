@@ -44,9 +44,9 @@ export default function Home() {
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
             <Link href="/create" className="group">
-              <Card className="bg-gray-950 border-gray-700 hover:bg-gray-750 hover:border-purple-600 transition-all duration-300 h-full">
+              <Card className="bg-gray-950 border-gray-700 hover:bg-neutral-750 hover:border-purple-600 transition-all duration-300 h-full">
                 <CardContent className="p-8 flex flex-col items-center text-center">
-                  <div className="bg-gray-100/50 p-4 rounded-full mb-4 group-hover:bg-purple-900/50 transition-colors">
+                  <div className="bg-neutral-100/50 p-4 rounded-full mb-4 group-hover:bg-purple-900/50 transition-colors">
                     <QrCode className="h-12 w-12 text-white hover:text-purple-400" />
                   </div>
                   <h3 className="text-xl font-bold mb-2 text-white">Create Payment</h3>

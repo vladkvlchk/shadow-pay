@@ -7,7 +7,7 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "GhostPay - Private Offline Crypto Payments",
+  title: "ShadowPay - Private Offline Crypto Payments",
   description: "Make private crypto payments without internet connection",
 };
 
