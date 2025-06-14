@@ -1,21 +1,21 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Check, WifiOff } from "lucide-react"
+import { AlertCircle, Check, WifiOff, Scan, Sparkles } from "lucide-react"
 import { Html5Qrcode } from "html5-qrcode"
-import { saveTransaction } from "@/lib/storage"
-import { processTransaction } from "@/lib/intmax"
 import { useNetworkStatus } from "@/hooks/use-network-status"
 
 export default function ScanPayment() {
+  const router = useRouter()
   const [scanning, setScanning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [transactionData, setTransactionData] = useState<any>(null)
+  const [paymentData, setPaymentData] = useState<any>(null)
   const [html5QrCode, setHtml5QrCode] = useState<Html5Qrcode | null>(null)
   const { isOnline } = useNetworkStatus()
 
@@ -68,22 +68,49 @@ export default function ScanPayment() {
     try {
       await stopScanning()
 
-      // Parse the QR data
-      const transaction = JSON.parse(decodedText)
-      setTransactionData(transaction)
+      // Check if it's a GhostPay payment URL
+      if (decodedText.includes("/pay/")) {
+        // Extract payment ID from URL
+        const urlParts = decodedText.split("/pay/")
+        if (urlParts.length === 2) {
+          const paymentId = urlParts[1]
 
-      // Save transaction to local storage
-      await saveTransaction(transaction)
+          // Set success state with payment data
+          setPaymentData({
+            id: paymentId,
+            url: decodedText,
+            type: "ghostpay_payment",
+          })
+          setSuccess(true)
 
-      // If online, process the transaction immediately
-      if (isOnline) {
-        await processTransaction(transaction)
+          // Auto-redirect after 2 seconds
+          setTimeout(() => {
+            router.push(`/pay/${paymentId}`)
+          }, 2000)
+
+          return
+        }
       }
 
-      setSuccess(true)
+      // Try to parse as JSON (legacy format or other data)
+      try {
+        const parsedData = JSON.parse(decodedText)
+        setPaymentData({
+          ...parsedData,
+          type: "json_data",
+        })
+        setSuccess(true)
+      } catch {
+        // If not JSON, treat as plain text/URL
+        setPaymentData({
+          data: decodedText,
+          type: "text_data",
+        })
+        setSuccess(true)
+      }
     } catch (err) {
       console.error("Error processing QR code:", err)
-      setError("Invalid QR code. Please try again.")
+      setError("Failed to process QR code. Please try again.")
       setScanning(false)
     }
   }
@@ -95,8 +122,15 @@ export default function ScanPayment() {
 
   const resetScan = () => {
     setSuccess(false)
-    setTransactionData(null)
+    setPaymentData(null)
     setError(null)
+  }
+
+  const handleProceedToPayment = () => {
+    if (paymentData?.type === "ghostpay_payment") {
+      const paymentId = paymentData.id
+      router.push(`/pay/${paymentId}`)
+    }
   }
 
   return (
@@ -104,7 +138,10 @@ export default function ScanPayment() {
       <Navigation />
 
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Scan Payment</h1>
+        <div className="flex items-center gap-2 mb-6">
+          <h1 className="text-2xl font-bold">Scan Payment</h1>
+          <Sparkles className="h-5 w-5 text-purple-400" />
+        </div>
 
         {error && (
           <Alert variant="destructive" className="mb-6">
@@ -116,21 +153,52 @@ export default function ScanPayment() {
         {!success ? (
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle>Scan QR Code</CardTitle>
-              <CardDescription className="text-gray-400">Point your camera at the payment QR code</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <Scan className="h-5 w-5 text-purple-400" />
+                Scan QR Code
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Point your camera at a GhostPay payment QR code
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="aspect-square max-w-md mx-auto relative">
                 <div id="qr-reader" className="w-full h-full bg-gray-800 rounded-lg overflow-hidden" />
 
                 {!scanning && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/70">
-                    <Button onClick={startScanning} className="bg-purple-600 hover:bg-purple-700">
-                      Start Camera
-                    </Button>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 rounded-lg">
+                    <div className="text-center">
+                      <Scan className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+                      <Button onClick={startScanning} className="bg-purple-600 hover:bg-purple-700">
+                        Start Camera
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {scanning && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute inset-4 border-2 border-purple-400 rounded-lg">
+                      <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-purple-400 rounded-tl-lg"></div>
+                      <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-purple-400 rounded-tr-lg"></div>
+                      <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-purple-400 rounded-bl-lg"></div>
+                      <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-purple-400 rounded-br-lg"></div>
+                    </div>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full">
+                      <span className="text-sm text-purple-400">Scanning...</span>
+                    </div>
                   </div>
                 )}
               </div>
+
+              {!isOnline && (
+                <Alert className="mt-4 bg-yellow-900/20 border-yellow-900">
+                  <WifiOff className="h-4 w-4" />
+                  <AlertDescription className="text-yellow-400">
+                    You're offline. Payments will be processed when connection is restored.
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardContent>
             {scanning && (
               <CardFooter>
@@ -151,52 +219,82 @@ export default function ScanPayment() {
                 <div className="bg-green-900 rounded-full p-1">
                   <Check className="h-4 w-4 text-green-300" />
                 </div>
-                <CardTitle>Payment Received</CardTitle>
+                <CardTitle>QR Code Scanned Successfully</CardTitle>
               </div>
               <CardDescription className="text-gray-400">
-                {isOnline
-                  ? "Transaction has been processed successfully"
-                  : "Transaction saved and will sync when online"}
+                {paymentData?.type === "ghostpay_payment"
+                  ? "GhostPay payment detected - redirecting to payment page..."
+                  : "QR code data captured successfully"}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Amount:</span>
-                  <span className="font-medium">{transactionData?.amount} INTMAX</span>
-                </div>
+                {paymentData?.type === "ghostpay_payment" ? (
+                  <>
+                    <div className="bg-purple-900/20 border border-purple-800 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-4 w-4 text-purple-400" />
+                        <span className="font-medium text-purple-400">GhostPay Payment</span>
+                      </div>
+                      <div className="text-sm text-gray-300">
+                        <p>Payment ID: {paymentData.id}</p>
+                        <p className="mt-1 text-xs text-gray-400">Redirecting in 2 seconds...</p>
+                      </div>
+                    </div>
 
-                {transactionData?.comment && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Comment:</span>
-                    <span>{transactionData.comment}</span>
-                  </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Status:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-green-400">Ready to Pay</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Network:</span>
+                      <div className="flex items-center gap-1">
+                        {isOnline ? (
+                          <span className="text-green-400">Online</span>
+                        ) : (
+                          <>
+                            <WifiOff className="h-3 w-3 text-yellow-500" />
+                            <span className="text-yellow-400">Offline</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                ) : paymentData?.type === "json_data" ? (
+                  <>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">JSON Data Detected</h4>
+                      <pre className="text-xs text-gray-300 overflow-auto">{JSON.stringify(paymentData, null, 2)}</pre>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bg-gray-800 p-4 rounded-lg">
+                      <h4 className="font-medium mb-2">Text Data</h4>
+                      <p className="text-sm text-gray-300 break-all">{paymentData?.data}</p>
+                    </div>
+                  </>
                 )}
-
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Transaction ID:</span>
-                  <span className="text-xs truncate max-w-[200px]">{transactionData?.id}</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Status:</span>
-                  <div className="flex items-center gap-1">
-                    {isOnline ? (
-                      <span className="text-green-400">Processed</span>
-                    ) : (
-                      <>
-                        <WifiOff className="h-3 w-3 text-yellow-500" />
-                        <span className="text-yellow-400">Pending (Offline)</span>
-                      </>
-                    )}
-                  </div>
-                </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={resetScan}>
-                Scan Another Payment
-              </Button>
+            <CardFooter className="flex gap-2">
+              {paymentData?.type === "ghostpay_payment" ? (
+                <>
+                  <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={handleProceedToPayment}>
+                    Proceed to Payment
+                  </Button>
+                  <Button variant="outline" className="flex-1 border-gray-700" onClick={resetScan}>
+                    Scan Another
+                  </Button>
+                </>
+              ) : (
+                <Button className="w-full bg-purple-600 hover:bg-purple-700" onClick={resetScan}>
+                  Scan Another QR Code
+                </Button>
+              )}
             </CardFooter>
           </Card>
         )}
