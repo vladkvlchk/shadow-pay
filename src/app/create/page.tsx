@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, AlertCircle, Download, Copy, CheckCircle2, Sparkles } from "lucide-react"
+import { Loader2, AlertCircle, Download, Copy, CheckCircle2, Sparkles, Lock, Eye, EyeOff, Shield } from "lucide-react"
 import { QRCodeSVG as QRCode } from "qrcode.react"
 import { createPayment, subscribeToPaymentUpdates } from "@/lib/payments-db"
-import { type Payment } from "@/lib/supabase"
+import { type Payment } from "@/lib/supabase";
 
 export default function CreatePayment() {
   const [amount, setAmount] = useState("")
@@ -24,6 +24,15 @@ export default function CreatePayment() {
   const [token, setToken] = useState<"ETH" | "USDC">("ETH")
   const [showFullScreenSuccess, setShowFullScreenSuccess] = useState(false)
   const [countdown, setCountdown] = useState(10)
+
+  // Kiosk mode states
+  const [isKioskMode, setIsKioskMode] = useState(false)
+  const [kioskPassword, setKioskPassword] = useState("")
+  const [unlockPassword, setUnlockPassword] = useState("")
+  const [showPasswordInput, setShowPasswordInput] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [unlockAttempts, setUnlockAttempts] = useState(0)
+  const [isLocked, setIsLocked] = useState(false)
 
   // Subscribe to payment updates when payment is created
   useEffect(() => {
@@ -50,7 +59,6 @@ export default function CreatePayment() {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          // Auto-generate new payment with same data
           handleAutoGenerate()
           return 0
         }
@@ -60,6 +68,38 @@ export default function CreatePayment() {
 
     return () => clearInterval(timer)
   }, [showFullScreenSuccess])
+
+  // Prevent back navigation and refresh in kiosk mode
+  useEffect(() => {
+    if (!isKioskMode) return
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ""
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Disable common shortcuts that could exit kiosk mode
+      if (
+        e.key === "F5" ||
+        (e.ctrlKey && (e.key === "r" || e.key === "R")) ||
+        (e.ctrlKey && e.shiftKey && (e.key === "I" || e.key === "i")) ||
+        (e.ctrlKey && (e.key === "u" || e.key === "U")) ||
+        e.key === "F12" ||
+        (e.altKey && e.key === "F4")
+      ) {
+        e.preventDefault()
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isKioskMode])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,7 +129,6 @@ export default function CreatePayment() {
     setShowFullScreenSuccess(false)
 
     try {
-      // Create new payment with same form data
       const newPayment = await createPayment(Number.parseFloat(amount), token, comment)
       setPayment(newPayment)
       setPaymentStatus("pending")
@@ -97,6 +136,53 @@ export default function CreatePayment() {
       setError("Failed to generate new payment. Please try again.")
       console.error(err)
       setPaymentStatus("creating")
+    }
+  }
+
+  const handleEnterKioskMode = () => {
+    if (!kioskPassword.trim()) {
+      setError("Please set a password to enable kiosk mode")
+      return
+    }
+
+    if (kioskPassword.length < 4) {
+      setError("Password must be at least 4 characters long")
+      return
+    }
+
+    setIsKioskMode(true)
+    setIsLocked(true)
+    setError(null)
+
+    // Request fullscreen if supported
+    if (document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(console.error)
+    }
+  }
+
+  const handleUnlockAttempt = () => {
+    if (unlockPassword === kioskPassword) {
+      setIsKioskMode(false)
+      setIsLocked(false)
+      setUnlockPassword("")
+      setShowPasswordInput(false)
+      setUnlockAttempts(0)
+
+      // Exit fullscreen
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(console.error)
+      }
+    } else {
+      setUnlockAttempts((prev) => prev + 1)
+      setUnlockPassword("")
+
+      // Lock for 30 seconds after 3 failed attempts
+      if (unlockAttempts >= 2) {
+        setIsLocked(true)
+        setTimeout(() => {
+          setUnlockAttempts(0)
+        }, 30000)
+      }
     }
   }
 
@@ -123,7 +209,6 @@ export default function CreatePayment() {
   }
 
   const handleCreateAnother = () => {
-    // Keep the same form data but reset the payment
     setPayment(null)
     setPaymentStatus("creating")
     setError(null)
@@ -134,7 +219,134 @@ export default function CreatePayment() {
     return `${window.location.origin}/pay/${payment.id}`
   }
 
-  // Full screen success overlay
+  // Kiosk mode locked screen
+  if (isKioskMode && isLocked && !showFullScreenSuccess) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex flex-col">
+        {/* Header with unlock button */}
+        <div className="absolute top-4 right-4 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-gray-400 hover:text-white"
+            onClick={() => setShowPasswordInput(!showPasswordInput)}
+          >
+            <Lock className="h-4 w-4 mr-2" />
+            Unlock
+          </Button>
+        </div>
+
+        {/* Password input overlay */}
+        {showPasswordInput && (
+          <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-20">
+            <Card className="bg-gray-900 border-gray-800 w-full max-w-sm mx-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-purple-400" />
+                  Enter Password
+                </CardTitle>
+                <CardDescription>
+                  {unlockAttempts >= 3
+                    ? "Too many failed attempts. Try again in 30 seconds."
+                    : "Enter the password to exit kiosk mode"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter password"
+                    value={unlockPassword}
+                    onChange={(e) => setUnlockPassword(e.target.value)}
+                    className="bg-gray-800 border-gray-700 pr-10"
+                    disabled={unlockAttempts >= 3}
+                    onKeyDown={(e) => e.key === "Enter" && handleUnlockAttempt()}
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                  </Button>
+                </div>
+                {unlockAttempts > 0 && unlockAttempts < 3 && (
+                  <p className="text-red-400 text-sm">Incorrect password. {3 - unlockAttempts} attempts remaining.</p>
+                )}
+              </CardContent>
+              <CardFooter className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowPasswordInput(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1 bg-purple-600 hover:bg-purple-700"
+                  onClick={handleUnlockAttempt}
+                  disabled={unlockAttempts >= 3 || !unlockPassword}
+                >
+                  Unlock
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        )}
+
+        {/* Full screen QR code display */}
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold mb-4">Scan to Pay</h1>
+            <div className="flex items-center justify-center gap-2 text-purple-400 mb-2">
+              <Shield className="h-5 w-5" />
+              <span className="text-lg">Kiosk Mode Active</span>
+            </div>
+          </div>
+
+          {payment && (
+            <>
+              {/* Large QR Code */}
+              <div className="bg-white p-8 rounded-2xl mb-8 shadow-2xl">
+                <QRCode value={getPaymentUrl()} size={320} level="H" includeMargin={true} />
+              </div>
+
+              {/* Payment Details */}
+              <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 max-w-md w-full border border-gray-800">
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-white mb-1">
+                      {payment.amount} {payment.token}
+                    </div>
+                    <div className="text-gray-400">Amount to Pay</div>
+                  </div>
+
+                  {payment.comment && (
+                    <div className="text-center border-t border-gray-800 pt-4">
+                      <div className="text-gray-400 text-sm mb-1">Payment For</div>
+                      <div className="text-white">{payment.comment}</div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center text-sm border-t border-gray-800 pt-4">
+                    <span className="text-gray-400">Status:</span>
+                    <span className="text-yellow-400 flex items-center gap-1">
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                      Waiting for payment
+                    </span>
+                  </div>
+
+                  <div className="text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
+                    <p>Powered by GhostPay</p>
+                    <p className="mt-1">ID: {String(payment.id).slice(0, 8)}...</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // Full screen success overlay (same as before)
   if (showFullScreenSuccess) {
     return (
       <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
@@ -305,6 +517,54 @@ export default function CreatePayment() {
                 <Button className="flex-1 bg-purple-600 hover:bg-purple-700" onClick={handleDownloadQR}>
                   <Download className="mr-2 h-4 w-4" />
                   Download QR
+                </Button>
+              </CardFooter>
+            </Card>
+
+            {/* Kiosk Mode Setup */}
+            <Card className="bg-gray-800 border-gray-700 w-full max-w-md mx-auto mt-6">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Shield className="h-4 w-4 text-purple-400" />
+                  Kiosk Mode
+                </CardTitle>
+                <CardDescription className="text-gray-400 text-sm">
+                  Lock the screen for unattended use. Perfect for leaving at a door or counter.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="kiosk-password" className="text-sm">
+                    Set Unlock Password
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="kiosk-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password (min 4 chars)"
+                      value={kioskPassword}
+                      onChange={(e) => setKioskPassword(e.target.value)}
+                      className="bg-gray-700 border-gray-600 text-sm pr-10"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-sm"
+                  onClick={handleEnterKioskMode}
+                  disabled={!kioskPassword || kioskPassword.length < 4}
+                >
+                  <Lock className="mr-2 h-4 w-4" />
+                  Enable Kiosk Mode
                 </Button>
               </CardFooter>
             </Card>
