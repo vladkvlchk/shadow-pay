@@ -11,7 +11,8 @@ import { AlertCircle, CheckCircle2, Loader2, ExternalLink, Sparkles } from "luci
 import { MockWalletConnection } from "@/components/mock-wallet-connection"
 import { formatAddress } from "@/lib/utils"
 import { useMockWallet } from "@/hooks/use-mock-wallet"
-import { getPaymentById, updatePaymentStatus, type Payment } from "@/lib/payments-db"
+import { getPaymentById, updatePaymentStatus } from "@/lib/payments-db"
+import { type Payment } from "@/lib/supabase";
 
 export default function PaymentPage() {
   const { slug } = useParams()
