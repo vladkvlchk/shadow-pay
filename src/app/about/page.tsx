@@ -25,7 +25,7 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-purple-500">
                 <WifiOff className="h-5 w-5 text-purple-500" />
                 Offline First
               </CardTitle>
@@ -45,7 +45,7 @@ export default function About() {
 
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-purple-500">
                 <Shield className="h-5 w-5 text-purple-500" />
                 Privacy Focused
               </CardTitle>
@@ -68,7 +68,7 @@ export default function About() {
         <div className="space-y-6 mb-12">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="text-xl">1. Creating a Payment</CardTitle>
+              <CardTitle className="text-xl text-white">1. Creating a Payment</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-300">
@@ -84,7 +84,7 @@ export default function About() {
 
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="text-xl">2. Scanning a Payment</CardTitle>
+              <CardTitle className="text-xl text-white">2. Scanning a Payment</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-300">
@@ -100,7 +100,7 @@ export default function About() {
 
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="text-xl">3. Synchronizing with INTMAX</CardTitle>
+              <CardTitle className="text-xl text-white">3. Synchronizing with INTMAX</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-300">
@@ -119,7 +119,7 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-purple-500">
                 <Lock className="h-5 w-5 text-purple-500" />
                 Cryptographic Security
               </CardTitle>
@@ -134,7 +134,7 @@ export default function About() {
 
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-purple-500">
                 <Zap className="h-5 w-5 text-purple-500" />
                 Stateless Architecture
               </CardTitle>
@@ -149,7 +149,7 @@ export default function About() {
 
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-purple-500">
                 <WifiOff className="h-5 w-5 text-purple-500" />
                 Offline Capability
               </CardTitle>

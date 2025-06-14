@@ -15,6 +15,7 @@ import { createPayment, subscribeToPaymentUpdates } from "@/lib/payments-db"
 import { type Payment } from "@/lib/supabase";
 
 export default function CreatePayment() {
+  const [receiver, setReceiver] = useState("")
   const [amount, setAmount] = useState("")
   const [comment, setComment] = useState("")
   const [loading, setLoading] = useState(false)
@@ -201,7 +202,7 @@ export default function CreatePayment() {
       const pngUrl = canvas.toDataURL("image/png")
       const downloadLink = document.createElement("a")
       downloadLink.href = pngUrl
-      downloadLink.download = `ghostpay-${payment.id}.png`
+      downloadLink.download = `shadowpay-${payment.id}.png`
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
@@ -228,7 +229,7 @@ export default function CreatePayment() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-400 hover:text-white"
+            className="text-neutral-400 hover:text-black cursor-pointer"
             onClick={() => setShowPasswordInput(!showPasswordInput)}
           >
             <Lock className="h-4 w-4 mr-2" />
@@ -239,9 +240,9 @@ export default function CreatePayment() {
         {/* Password input overlay */}
         {showPasswordInput && (
           <div className="absolute inset-0 bg-black/90 flex items-center justify-center z-20">
-            <Card className="bg-gray-900 border-gray-800 w-full max-w-sm mx-4">
+            <Card className="bg-neutral-900 border-neutral-800 w-full max-w-sm mx-4">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-purple-400">
                   <Shield className="h-5 w-5 text-purple-400" />
                   Enter Password
                 </CardTitle>
@@ -258,14 +259,14 @@ export default function CreatePayment() {
                     placeholder="Enter password"
                     value={unlockPassword}
                     onChange={(e) => setUnlockPassword(e.target.value)}
-                    className="bg-gray-800 border-gray-700 pr-10"
+                    className="bg-neutral-800 border-neutral-700 pr-10"
                     disabled={unlockAttempts >= 3}
                     onKeyDown={(e) => e.key === "Enter" && handleUnlockAttempt()}
                   />
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 p-0 text-white"
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
@@ -309,32 +310,32 @@ export default function CreatePayment() {
               </div>
 
               {/* Payment Details */}
-              <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl p-6 max-w-md w-full border border-gray-800">
+              <div className="bg-neutral-900/50 backdrop-blur-sm rounded-xl p-6 max-w-md w-full border border-neutral-800">
                 <div className="space-y-4">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-white mb-1">
                       {payment.amount} {payment.token}
                     </div>
-                    <div className="text-gray-400">Amount to Pay</div>
+                    <div className="text-neutral-400">Amount to Pay</div>
                   </div>
 
                   {payment.comment && (
-                    <div className="text-center border-t border-gray-800 pt-4">
-                      <div className="text-gray-400 text-sm mb-1">Payment For</div>
+                    <div className="text-center border-t border-neutral-800 pt-4">
+                      <div className="text-neutral-400 text-sm mb-1">Payment For</div>
                       <div className="text-white">{payment.comment}</div>
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center text-sm border-t border-gray-800 pt-4">
-                    <span className="text-gray-400">Status:</span>
+                  <div className="flex justify-between items-center text-sm border-t border-neutral-800 pt-4">
+                    <span className="text-neutral-400">Status:</span>
                     <span className="text-yellow-400 flex items-center gap-1">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Waiting for payment
                     </span>
                   </div>
 
-                  <div className="text-center text-xs text-gray-500 border-t border-gray-800 pt-4">
-                    <p>Powered by GhostPay</p>
+                  <div className="text-center text-xs text-neutral-500 border-t border-neutral-800 pt-4">
+                    <p>Powered by ShadowPay</p>
                     <p className="mt-1">ID: {String(payment.id).slice(0, 8)}...</p>
                   </div>
                 </div>
@@ -362,16 +363,16 @@ export default function CreatePayment() {
 
           <div className="space-y-4">
             <h1 className="text-4xl font-bold text-white">Payment Received!</h1>
-            <p className="text-xl text-gray-300">
+            <p className="text-xl text-neutral-300">
               {payment?.amount} {payment?.token} successfully paid
             </p>
-            {payment?.comment && <p className="text-gray-400 italic">"{payment.comment}"</p>}
+            {payment?.comment && <p className="text-neutral-400 italic">"{payment.comment}"</p>}
           </div>
 
           <div className="space-y-2">
-            <p className="text-gray-400">Generating new QR code in</p>
+            <p className="text-neutral-400">Generating new QR code in</p>
             <div className="text-6xl font-bold text-purple-400">{countdown}</div>
-            <p className="text-sm text-gray-500">seconds</p>
+            <p className="text-sm text-neutral-500">seconds</p>
           </div>
 
           <Button
@@ -391,7 +392,7 @@ export default function CreatePayment() {
       <Navigation />
 
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Create Payment</h1>
+        <h1 className="text-2xl font-bold mb-6 mx-auto">Create Payment</h1>
 
         {error && (
           <Alert variant="destructive" className="mb-6">
@@ -401,33 +402,44 @@ export default function CreatePayment() {
         )}
 
         {paymentStatus === "creating" ? (
-          <Card className="bg-gray-900 border-gray-800">
+          <Card className="bg-neutral-900 border-neutral-800">
             <CardHeader>
-              <CardTitle>Payment Details</CardTitle>
-              <CardDescription className="text-gray-400">Enter the payment amount and optional comment</CardDescription>
+              <CardTitle className="text-white">Payment Details</CardTitle>
+              <CardDescription className="text-neutral-400">Enter the payment amount and optional comment</CardDescription>
             </CardHeader>
             <form onSubmit={handleSubmit}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount</Label>
+              <CardContent className="space-y-4 text-white">
+              <div className="space-y-2">
+                  <Label htmlFor="receiver">Receiver address</Label>
                   <Input
-                    id="amount"
-                    type="number"
-                    step="0.000001"
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="bg-gray-800 border-gray-700"
+                    id="receiver"
+                    placeholder="0xabcdaf012345678..."
+                    value={receiver}
+                    onChange={(e) => setReceiver(e.target.value)}
+                    className="bg-neutral-800 border-neutral-700"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="token">Token</Label>
+                <div className="space-y-2 flex gap-2">
+                  <div className="">
+                    <Label className="mb-2" htmlFor="amount">Amount</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.000001"
+                      placeholder="0.00"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      className="bg-neutral-800 border-neutral-700"
+                    />
+                  </div>
+
+                  {/* <Label htmlFor="token">Token</Label> */}
                   <select
                     id="token"
                     value={token}
                     onChange={(e) => setToken(e.target.value as "ETH" | "USDC")}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white"
+                    className="w-24 h-10 mt-5 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md text-white"
                   >
                     <option value="ETH">ETH</option>
                     <option value="USDC">USDC</option>
@@ -441,7 +453,7 @@ export default function CreatePayment() {
                     placeholder="What's this payment for?"
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
-                    className="bg-gray-800 border-gray-700"
+                    className="bg-neutral-800 border-neutral-700 mb-4"
                   />
                 </div>
               </CardContent>
@@ -461,20 +473,20 @@ export default function CreatePayment() {
           </Card>
         ) : paymentStatus === "auto-generating" ? (
           <div className="flex flex-col items-center justify-center min-h-[400px]">
-            <Card className="bg-gray-900 border-gray-800 w-full max-w-md mx-auto">
+            <Card className="bg-neutral-900 border-neutral-800 w-full max-w-md mx-auto">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="h-12 w-12 animate-spin text-purple-400 mb-4" />
                 <h3 className="text-xl font-semibold mb-2">Generating New QR Code</h3>
-                <p className="text-gray-400 text-center">Creating a new payment request with the same details...</p>
+                <p className="text-neutral-400 text-center">Creating a new payment request with the same details...</p>
               </CardContent>
             </Card>
           </div>
         ) : (
           <div className="flex flex-col items-center">
-            <Card className="bg-gray-900 border-gray-800 w-full max-w-md mx-auto">
+            <Card className="bg-neutral-900 border-neutral-800 w-full max-w-md mx-auto text-white">
               <CardHeader>
                 <CardTitle>Payment QR Code</CardTitle>
-                <CardDescription className="text-gray-400">
+                <CardDescription className="text-neutral-400">
                   Waiting for payment... Share this QR code or link
                 </CardDescription>
               </CardHeader>
@@ -485,26 +497,26 @@ export default function CreatePayment() {
 
                 <div className="w-full space-y-2 mt-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Amount:</span>
+                    <span className="text-neutral-400">Amount:</span>
                     <span>
                       {payment?.amount} {payment?.token}
                     </span>
                   </div>
                   {payment?.comment && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Comment:</span>
+                      <span className="text-neutral-400">Comment:</span>
                       <span className="text-right">{payment.comment}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Status:</span>
+                    <span className="text-neutral-400">Status:</span>
                     <span className="text-yellow-400 flex items-center gap-1">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       Waiting for payment
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Payment ID:</span>
+                    <span className="text-neutral-400">Payment ID:</span>
                     <span className="text-xs truncate max-w-[200px]">{payment?.id}</span>
                   </div>
                 </div>
@@ -522,13 +534,13 @@ export default function CreatePayment() {
             </Card>
 
             {/* Kiosk Mode Setup */}
-            <Card className="bg-gray-800 border-gray-700 w-full max-w-md mx-auto mt-6">
+            <Card className="bg-neutral-800 border-neutral-700 w-full max-w-md mx-auto mt-6 text-white">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
+                <CardTitle className="flex items-center gap-2 text-sm text-purple-400">
                   <Shield className="h-4 w-4 text-purple-400" />
                   Kiosk Mode
                 </CardTitle>
-                <CardDescription className="text-gray-400 text-sm">
+                <CardDescription className="text-neutral-400 text-sm">
                   Lock the screen for unattended use. Perfect for leaving at a door or counter.
                 </CardDescription>
               </CardHeader>
@@ -544,7 +556,7 @@ export default function CreatePayment() {
                       placeholder="Enter password (min 4 chars)"
                       value={kioskPassword}
                       onChange={(e) => setKioskPassword(e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-sm pr-10"
+                      className="bg-neutral-700 border-neutral-600 text-sm pr-10"
                     />
                     <Button
                       variant="ghost"
