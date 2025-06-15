@@ -42,10 +42,10 @@ export default function Home() {
           </header>
 
           <section className="mb-16 text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">Private Offline Crypto Payments</h2>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 drop-shadow-lg">Private Crypto Payments</h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-8 drop-shadow-md">
-              Send and receive crypto payments without an internet connection. Your transactions sync to INTMAX when
-              you're back online.
+              {/* Send and receive crypto payments using QR codes and be sure than nobody can see your balance.  */}
+              Automatically process queues of people using a secure "kiosk mode" based on the private transactions of the INTMAX network.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
               <Link href="/create" className="group">
