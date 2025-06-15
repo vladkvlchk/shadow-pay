@@ -16,7 +16,6 @@ export function Navigation() {
       <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            {/* <Ghost className="h-6 w-6 text-purple-500" /> */}
             <Image src="/logo.png" alt="logo"  width="70" height={40} />
             <span className="font-bold text-xl">ShadowPay</span>
           </Link>
