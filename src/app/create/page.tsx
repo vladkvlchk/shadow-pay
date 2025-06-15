@@ -392,7 +392,7 @@ export default function CreatePayment() {
       <Navigation />
 
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6 mx-auto">Create Payment</h1>
+        <h1 className="text-2xl font-bold mb-6 mx-auto w-full text-center">Create Payment</h1>
 
         {error && (
           <Alert variant="destructive" className="mb-6">
@@ -402,7 +402,7 @@ export default function CreatePayment() {
         )}
 
         {paymentStatus === "creating" ? (
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-neutral-900 border-neutral-800 w-full max-w-md mx-auto">
             <CardHeader>
               <CardTitle className="text-white">Payment Details</CardTitle>
               <CardDescription className="text-neutral-400">Enter the payment amount and optional comment</CardDescription>
